@@ -126,22 +126,32 @@ public class PlayerActionEvent
 			ItemStack heldStack = player.getCurrentEquippedItem();
 			Item heldItem = heldStack.getItem();
 
-			if (player.isSneaking()
-					|| (!block.hasTileEntity(block.getDamageValue(world, x, y, z)) && !block.onBlockActivated(world, x, y, x, player, face, offset.offsetX,
-							offset.offsetY, offset.offsetZ)))
+			boolean blockHandlesInteraction = interactEvent.action == Action.RIGHT_CLICK_BLOCK
+				&& block.hasTileEntity(block.getDamageValue(world, x, y, z));
+
+			if (player.isSneaking() || !blockHandlesInteraction)
 			{
 				if (interactEvent.action == Action.RIGHT_CLICK_AIR)
 				{
 					if (ConfigHandler.doArmorSwap() && heldItem instanceof ItemArmor)
+					{
 						switchArmor(player, world, heldStack);
+						interactEvent.setCanceled(true);
+					}
 
 					if (ConfigHandler.doArrowThrow() && heldItem == Items.arrow)
+					{
 						throwArrow(world, player, heldStack);
+						interactEvent.setCanceled(true);
+					}
 				}
 
 				if (ConfigHandler.doToolBlockPlace() && interactEvent.action == Action.RIGHT_CLICK_BLOCK)
 					if (!blacklist.isValid(heldItem) || whitelist.isValid(heldItem))
+					{
 						placeBlocks(world, player, heldStack, x, y, z, face, offset);
+						interactEvent.setCanceled(true);
+					}
 			}
 		}
 
